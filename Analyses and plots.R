@@ -10,63 +10,21 @@ require("bbmle")
 
 Data<-read.csv("Anemones_FightingData.csv",h=T)
 
+### In what follows, our three tests will be coded. After each model
+### I will check the model for inconsistencies (i.e. residual deviance on degrees of freedom)
+### if there aren't any I will carry on to significance testing via the anova() function.
+
 ############################
 ## CONTEST OUTCOME MODELS ##
 ############################
 
-### In this section, all models used for the AIC analysis will be coded. After each model
-### I will check the model for inconsistencies (i.e. residual deviance on degrees of freedom)
-### if there aren't any I will carry on to the next model.
-
-# 1. Simple model with no covariates
-
-m1 <- glm(Contest_outcome ~ Focal_treatment * Opponent_treatment, data = Data, family = binomial)
-summary(m1)
-
-#2. Simple model testing the effects of SR2
-
-m2 <- glm(Contest_outcome ~ Focal_treatment * Opponent_treatment + 
-            log(StartleResp_2_focal) * log(StartleResp_2_Opponent), data=Data, family=binomial)
-summary(m2)
-
-#3. All possible RHP traits as co-variates with interactions (saturated model)
-
 m3 <- glm(Contest_outcome ~ Focal_treatment * Opponent_treatment + 
-            log(StartleResp_2_focal) * log(StartleResp_2_Opponent) + 
-            log(Dry_weight_focal+1) * log(Dry_weight_opponent+1) + 
-            Nemato_length_focal * Nemato_length_opponent, data=Data, family=binomial)
+            scale(log(StartleResp_2_focal)) + scale(log(StartleResp_2_Opponent)) + 
+            scale(log(Dry_weight_focal+1)) + scale(log(Dry_weight_opponent+1)) + 
+            scale(log(Nemato_length_focal+1)) + scale(log(Nemato_length_opponent+1)), data=Data, family=binomial)
 summary(m3)
+anova(m3, test="Chisq")
 
-#4. Saturated model minus nematocysts
-
-m4 <- glm(Contest_outcome ~ Focal_treatment * Opponent_treatment + 
-            log(StartleResp_2_focal) * log(StartleResp_2_Opponent) + 
-            log(Dry_weight_focal+1) * log(Dry_weight_opponent+1), 
-          data=Data, family=binomial)
-summary(m4)
-
-#5. Saturated model minus dry weight
-
-m5 <- glm(Contest_outcome ~ Focal_treatment * Opponent_treatment + 
-             log(StartleResp_2_focal) * log(StartleResp_2_Opponent) +
-             Nemato_length_focal * Nemato_length_opponent, data=Data, family=binomial)
-summary(m5)
-
-#6. Treatments plus nematocysts
-
-m6 <- glm(Contest_outcome ~ Focal_treatment * Opponent_treatment + 
-            Nemato_length_focal * Nemato_length_opponent, data=Data, family=binomial)
-summary(m6)
-
-#7. Treatments plus dry weight
-
-m7 <- glm(Contest_outcome ~ Focal_treatment * Opponent_treatment + 
-            log(Dry_weight_focal+1) * log(Dry_weight_opponent+1), data=Data, family=binomial)
-summary(m7)
-
-### Building the AIC comparisons
-
-AICctab(m1,m2,m3,m4,m5,m6,m7,nobs=length(Data$ID.PAIR),weights=T,delta=T,base=T)
 
 ###############################
 ## CONTEST ESCALATION MODELS ##
@@ -75,112 +33,25 @@ AICctab(m1,m2,m3,m4,m5,m6,m7,nobs=length(Data$ID.PAIR),weights=T,delta=T,base=T)
 ### Similar to the previous section, but using whether the contest escalated to
 ### acrorhagial contact or not (1,0) as the response variable 
 
-#1. Simple model with only the treatments as co-variates
-
-e1<-glm(Contest_escalation ~ Focal_treatment * Opponent_treatment, data=Data, family=binomial)
-summary(e1)
-
-#2. Model with the startle responses as covariates
-
-e2<-glm(Contest_escalation ~ Focal_treatment * Opponent_treatment + 
-          log(StartleResp_2_focal) * log(StartleResp_2_Opponent), data=Data, family=binomial)
-summary(e2)
-
-#3. Full saturated model
-
 e3<-glm(Contest_escalation ~ Focal_treatment * Opponent_treatment + 
-          log(StartleResp_2_focal) * log(StartleResp_2_Opponent) + 
-          log(Dry_weight_focal+1) * log(Dry_weight_opponent+1) + 
-          Nemato_length_focal * Nemato_length_opponent, data=Data, family=binomial)
+          scale(log(StartleResp_2_focal)) + scale(log(StartleResp_2_Opponent)) + 
+          scale(log(Dry_weight_focal+1)) + scale(log(Dry_weight_opponent+1)) + 
+          scale(log(Nemato_length_focal+1)) + scale(log(Nemato_length_opponent+1)), data=Data, family=binomial)
 summary(e3)
+anova(e3, test="Chisq")
 
-#4. Full model minus nematocyst length
-
-e4<-glm(Contest_escalation ~Focal_treatment * Opponent_treatment + 
-          log(StartleResp_2_focal) * log(StartleResp_2_Opponent) + 
-          log(Dry_weight_focal+1) * log(Dry_weight_opponent+1), data=Data, family=binomial)
-summary(e4)
-
-#5. Full model minus dry weight
-
-e5<-glm(Contest_escalation ~ Focal_treatment * Opponent_treatment + 
-          log(StartleResp_2_focal) * log(StartleResp_2_Opponent) + 
-          Nemato_length_focal * Nemato_length_opponent, data=Data, family=binomial)
-summary(e5)
-
-#6. Model with treatments and nematocyst length
-
-e6<-glm(Contest_escalation ~ Focal_treatment * Opponent_treatment + 
-          Nemato_length_focal * Nemato_length_opponent, data=Data,family=binomial)
-summary(e6)
-
-#7. Model with treatments and dry weight
-
-e7<-glm(Contest_escalation ~ Focal_treatment * Opponent_treatment + 
-          log(Dry_weight_focal+1) * log(Dry_weight_opponent+1), data=Data, family=binomial)
-summary(e7)
-
-
-#8. Building the AICc table
-
-AICctab(e1,e2,e3,e4,e5,e6,e7,nobs=length(Data$ID.PAIR),weights=T,delta=T,base=T)
 
 #############################
 ## CONTEST DURATION MODELS ##
 #############################
 
-
-#1. simple with no covariates
-
-c1<-lm(log(Contest_duration) ~ Focal_treatment * Opponent_treatment, data = Data)
-summary.aov(c1)
-summary(c1)
-
-#2. model with SR as covariates
-
-c2<-lm(log(Contest_duration) ~ Focal_treatment * Opponent_treatment + 
-         log(StartleResp_2_focal) * log(StartleResp_2_Opponent), data = Data)
-summary.aov(c2)
-summary(c2)
-
-#3. model with size as covariates
-
 c3<-lm(log(Contest_duration) ~ Focal_treatment * Opponent_treatment + 
-         log(StartleResp_2_focal) * log(StartleResp_2_Opponent) + 
-         log(Dry_weight_focal+1) * log(Dry_weight_opponent+1) + 
-         Nemato_length_focal * Nemato_length_opponent,data = Data)
-summary.aov(c3)
+         scale(log(StartleResp_2_focal)) + scale(log(StartleResp_2_Opponent)) + 
+         scale(log(Dry_weight_focal+1)) + scale(log(Dry_weight_opponent+1)) + 
+         scale(log(Nemato_length_focal+1)) + scale(log(Nemato_length_opponent+1)),data = Data)
+summary(c3)
+anova(c3)
 
-#4. full model
-
-c4<-lm(log(Contest_duration) ~ Focal_treatment * Opponent_treatment + 
-         log(StartleResp_2_focal) * log(StartleResp_2_Opponent) + 
-         log(Dry_weight_focal+1) * log(Dry_weight_opponent+1),data = Data)
-summary.aov(c4)
-
-#5. model with no interaction within covariates
-
-c5<-lm(log(Contest_duration) ~ Focal_treatment * Opponent_treatment + 
-         log(StartleResp_2_focal) * log(StartleResp_2_Opponent) + 
-         Nemato_length_focal * Nemato_length_opponent, data = Data)
-summary.aov(c5)
-
-#6. model with no SR and no interaction within size covariates
-
-c6<-lm(log(Contest_duration) ~ Focal_treatment * Opponent_treatment +
-         Nemato_length_focal * Nemato_length_opponent,data = Data)
-summary.aov(c6)
-
-#7. model with no size and no interaction within SR
-
-c7<-lm(log(Contest_duration)~ Focal_treatment * Opponent_treatment + 
-         log(Dry_weight_focal+1) * log(Dry_weight_opponent+1), data = Data)
-summary.aov(c7)
-
-
-#8. Let's check what AIC has to tell us about the models...
-
-AICctab(c1,c2,c3,c4,c5,c6,c7,nobs=length(Data$ID.PAIR),delta=T,weights=T,base=T)
 
 ###############################
 ## STARTLE RESPONSE ANALYSIS ##
