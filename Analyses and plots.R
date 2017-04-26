@@ -127,13 +127,17 @@ sr.seq<-seq(min(log(dataSR$Startle_Response_1)),max(log(dataSR$Startle_Response_
 flow.trt<-factor(rep("flow",length(sr.seq))) 
 
 ## Third, we generate the predicted values and create a vector with those
-## values
+## values and the values for the confidence intervals
 
 yv<-predict(modelPlot,list(Startle_Response_1=sr.seq,treatment=flow.trt),type="response") 
+yv1<-predict(modelPlot,list(Startle_Response_1=sr.seq,treatment=flow.trt),interval = "confidence")
 
 #Fourth, we plot the line on the graph
 
-lines(sr.seq,yv,lwd=2,lty=2) #plotando no gráfico
+lines(sr.seq,yv,lwd=2,lty=2) # main fit
+lines(sr.seq,yv1[,2],lty=3) # upper interval
+lines(sr.seq,yv1[,3],lty=3) # lower interval
+
 
 #Lastly, we rinse and repeat until we plotted all levels we want.
 #In our case, we have just one extra level (i.e. no flow)
@@ -141,8 +145,11 @@ lines(sr.seq,yv,lwd=2,lty=2) #plotando no gráfico
 noflow.trt<-factor(rep("no-flow",length(sr.seq)))
 
 yv.nf<-predict(modelPlot,list(Startle_Response_1=sr.seq,treatment=noflow.trt),type="response")
+yv1.nf<-predict(modelPlot,list(Startle_Response_1=sr.seq,treatment=noflow.trt),interval = "confidence")
 
-lines(sr.seq,yv.nf,lwd=2)
+lines(sr.seq,yv.nf,lwd=2,col='darkgray')
+lines(sr.seq,yv1.nf[,2],lty=3,lwd=2,col='darkgray')
+lines(sr.seq,yv1.nf[,3],lty=3,lwd=2,col='darkgray')
 
 #As our last measure, we need to plot the legend
 
